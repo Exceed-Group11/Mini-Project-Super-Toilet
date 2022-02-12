@@ -16,7 +16,8 @@ collection = db["Toilets"]
 
 @app.get("/toilet/{toilet_id}/")
 def show_status(toilet_id: int):
-    check = collection.find({"toilet_id": toilet_id}, {"_id": 0})
+    check = collection.find({"toilet_id": toilet_id}, {
+                            "_id": 0, "toilet_id": 0})
     list_check = list(check)
     if len(list_check) == 0:
         raise HTTPException(404, f"Couldn't find toilet_id:{toilet_id}")
