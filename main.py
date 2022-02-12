@@ -7,9 +7,21 @@ app = FastAPI()
 mongo_client = MongoClient('mongodb://localhost', 27017)
 
 db = mongo_client["SuperToilet"]
+
 collection = db["Toilets"]
 
-@app.get("{/toilet/{toilet_id}")
+class Toilet(Basemodel):
+    toilet_id:int
+    status:bool
+    time_in:int
+
+@app.get("{/toilet/{toilet_id}/")
 def show_status(toilet_id:int ):
     check = collection.find({"toilet_id":toiled_id}, {"_id":0})
-    return check
+    list_check = list(check)
+    if len(list_check)==0 :
+        raise HTTPException(404,f"Couldn't find toilet_id:{toilet_id}")
+    return list_check.pop()
+
+
+            
