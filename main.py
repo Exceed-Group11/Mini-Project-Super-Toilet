@@ -58,3 +58,18 @@ def update_toilet_status(toilet_id: int, status_obj: StatusModel):
     return {
         "message": "success"
     }
+
+@app.get("/toilet/")
+def show_all():
+    find_all=collection.find({},{"_id":0})
+    list_find = []
+    for find in find_all:
+        list_find.append(find)
+    return {
+            "result": list_find
+            }
+
+
+
+
+
