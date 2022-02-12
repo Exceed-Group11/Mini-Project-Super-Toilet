@@ -7,3 +7,9 @@ app = FastAPI()
 mongo_client = MongoClient('mongodb://localhost', 27017)
 
 db = mongo_client["SuperToilet"]
+collection = db["Toilets"]
+
+@app.get("{/toilet/{toilet_id}")
+def show_status(toilet_id:int ):
+    check = collection.find({"toilet_id:"}, {"_id":0})
+    return check
