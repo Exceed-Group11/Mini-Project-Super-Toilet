@@ -12,6 +12,18 @@ mongo_client = MongoClient('mongodb://localhost', 27017)
 
 db = mongo_client["SuperToilet"]
 
+collection = db["Toilets"]
+
+
+@app.get("/toilet/{toilet_id}/")
+def show_status(toilet_id: int):
+    check = collection.find({"toilet_id": toilet_id}, {
+                            "_id": 0, "toilet_id": 0})
+    list_check = list(check)
+    if len(list_check) == 0:
+        raise HTTPException(404, f"Couldn't find toilet_id:{toilet_id}")
+    return list_check.pop()
+
 
 @app.post("/toilet/{toilet_id}/")
 def update_toilet_status(toilet_id: int, status_obj: StatusModel):
@@ -42,8 +54,6 @@ def update_toilet_status(toilet_id: int, status_obj: StatusModel):
             "status": status_obj.status,
             "time_in": None
         }
-
-    print(update_toilet_object)
     toilet_collection.update_one({"toilet_id": toilet_id}, {
         "$set": update_toilet_object})
     return {
