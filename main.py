@@ -2,8 +2,49 @@ from fastapi import FastAPI, HTTPException
 from pymongo import MongoClient
 from pydantic import BaseModel
 from fastapi.encoders import jsonable_encoder
+import datetime
+
+from models.status_models import StatusModel
 
 app = FastAPI()
 mongo_client = MongoClient('mongodb://localhost', 27017)
 
 db = mongo_client["SuperToilet"]
+
+
+@app.post("/toilet/{toilet_id}/")
+def update_toilet_status(toilet_id: int, status_obj: StatusModel):
+    # Check if the toilet is valid
+    toilet_collection = db["Toilets"]
+    query_toilet = toilet_collection.find({"toilet_id": toilet_id}, {"_id": 0})
+    list_query_toilet = list(query_toilet)
+
+    if len(list_query_toilet) != 1:
+        raise HTTPException(400, {
+            "message": "The toilet id was not found or the data is broken."
+        })
+
+    focused_toilet = list_query_toilet.pop()
+    if focused_toilet["status"] == status_obj.status:
+        raise HTTPException(400, {
+            "message": f"The toilet is already in status {status_obj.status}"
+        })
+
+    update_toilet_object = {}
+    if status_obj.status:
+        update_toilet_object = {
+            "status": status_obj.status,
+            "time_in": int(datetime.datetime.now().timestamp())
+        }
+    else:
+        update_toilet_object = {
+            "status": status_obj.status,
+            "time_in": None
+        }
+
+    print(update_toilet_object)
+    toilet_collection.update_one({"toilet_id": toilet_id}, {
+        "$set": update_toilet_object})
+    return {
+        "message": "success"
+    }
