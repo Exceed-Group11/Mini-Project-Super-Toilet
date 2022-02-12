@@ -11,5 +11,5 @@ collection = db["Toilets"]
 
 @app.get("{/toilet/{toilet_id}")
 def show_status(toilet_id:int ):
-    check = collection.find({"toilet_id:"}, {"_id":0})
+    check = collection.find({"toilet_id":toiled_id}, {"_id":0})
     return check
