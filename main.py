@@ -53,8 +53,6 @@ def update_toilet_status(toilet_id: int, status_obj: StatusModel):
             "status": status_obj.status,
             "time_in": None
         }
-
-    print(update_toilet_object)
     toilet_collection.update_one({"toilet_id": toilet_id}, {
         "$set": update_toilet_object})
     return {
