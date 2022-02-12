@@ -1,16 +1,28 @@
+from utils.database.supertoilet_database import SuperToiletDatabase
+from utils.calculate_average import calculate_average
+from models.status_models import StatusModel
+import datetime
 from typing import Dict, final
 from fastapi import FastAPI, HTTPException
 from pymongo import MongoClient
 from pydantic import BaseModel
 from fastapi.encoders import jsonable_encoder
-import datetime
-
-from models.status_models import StatusModel
-from utils.calculate_average import calculate_average
-from utils.database.supertoilet_database import SuperToiletDatabase
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
 supertoilet_database = SuperToiletDatabase()
+
+origins = [
+    "*"
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 client = MongoClient('mongodb://localhost', 27017)
 db = client["SuperToilet"]
