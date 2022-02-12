@@ -1,3 +1,4 @@
+from typing import Dict
 from fastapi import FastAPI, HTTPException
 from pymongo import MongoClient
 from pydantic import BaseModel
@@ -47,4 +48,24 @@ def update_toilet_status(toilet_id: int, status_obj: StatusModel):
         "$set": update_toilet_object})
     return {
         "message": "success"
+    }
+
+
+@app.get("/toilet/statistic/")
+def get_toilet_statistic():
+    toilet_stat_collection = db["ToiletStat"]
+    list_toilet_stat = list(toilet_stat_collection.find({}))
+    if len(list_toilet_stat) != 1:
+        raise HTTPException(500, {
+            "message": "The Statistic data is broken."
+        })
+
+    toilet_stat: Dict = list_toilet_stat.pop()
+    # TODO: Maybe, Improve this later?
+    if toilet_stat.get("time_average", "") == "":
+        raise HTTPException(500, {
+            "message": "The Statistic data is broken."
+        })
+    return {
+        "toilet_average":  toilet_stat.get("time_average")
     }
