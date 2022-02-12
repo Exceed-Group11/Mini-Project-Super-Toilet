@@ -18,6 +18,19 @@ db = client["SuperToilet"]
 collection = db["Toilets"]
 
 
+@app.get("/toilet/statistic/")
+def get_toilet_statistic():
+    try:
+        toilet_stat = supertoilet_database.get_stat()
+    except ValueError as e:
+        raise HTTPException(500, {
+            "message": str(e)
+        })
+    return {
+        "time_average": toilet_stat["time_average"]
+    }
+
+
 @app.get("/toilet/{toilet_id}/")
 def show_status(toilet_id: int):
     check = collection.find({"toilet_id": toilet_id}, {
@@ -75,19 +88,6 @@ def update_toilet_status(toilet_id: int, status_obj: StatusModel):
         "$set": update_toilet_object})
     return {
         "message": "success"
-    }
-
-
-@app.get("/toilet/statistic/")
-def get_toilet_statistic():
-    try:
-        toilet_stat = supertoilet_database.get_stat()
-    except ValueError as e:
-        raise HTTPException(500, {
-            "message": str(e)
-        })
-    return {
-        "time_average": toilet_stat["time_average"]
     }
 
 
