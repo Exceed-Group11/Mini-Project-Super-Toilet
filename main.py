@@ -14,12 +14,6 @@ db = mongo_client["SuperToilet"]
 collection = db["Toilets"]
 
 
-class Toilet(Basemodel):
-    toilet_id: int
-    status: bool
-    time_in: int
-
-
 @app.get("/toilet/{toilet_id}/")
 def show_status(toilet_id: int):
     check = collection.find({"toilet_id": toilet_id}, {"_id": 0})
