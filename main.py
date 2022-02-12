@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Dict, final
 from fastapi import FastAPI, HTTPException
 from pymongo import MongoClient
 from pydantic import BaseModel
@@ -6,11 +6,14 @@ from fastapi.encoders import jsonable_encoder
 import datetime
 
 from models.status_models import StatusModel
+from utils.calculate_average import calculate_average
+from utils.database.supertoilet_database import SuperToiletDatabase
 
 app = FastAPI()
-mongo_client = MongoClient('mongodb://localhost', 27017)
+supertoilet_database = SuperToiletDatabase()
 
-db = mongo_client["SuperToilet"]
+client = MongoClient('mongodb://localhost', 27017)
+db = client["SuperToilet"]
 
 collection = db["Toilets"]
 
@@ -44,12 +47,26 @@ def update_toilet_status(toilet_id: int, status_obj: StatusModel):
         })
 
     update_toilet_object = {}
+    current_time_stamp = int(datetime.datetime.now().timestamp())
     if status_obj.status:
         update_toilet_object = {
             "status": status_obj.status,
-            "time_in": int(datetime.datetime.now().timestamp())
+            "time_in": current_time_stamp
         }
     else:
+        # Get current time_in and calculate time diff
+        time_in = focused_toilet["time_in"]
+        time_diff = current_time_stamp - time_in
+        # Get current statistic data
+        stat = supertoilet_database.get_stat()
+        # Calculate new average
+        new_stat, count = calculate_average(
+            stat["time_average"], stat["count"], time_diff)
+        # Set new average data
+        supertoilet_database.set_stat({
+            "time_average": new_stat,
+            "count": count
+        })
         update_toilet_object = {
             "status": status_obj.status,
             "time_in": None
@@ -63,19 +80,12 @@ def update_toilet_status(toilet_id: int, status_obj: StatusModel):
 
 @app.get("/toilet/statistic/")
 def get_toilet_statistic():
-    toilet_stat_collection = db["ToiletStat"]
-    list_toilet_stat = list(toilet_stat_collection.find({}))
-    if len(list_toilet_stat) != 1:
+    try:
+        toilet_stat = supertoilet_database.get_stat()
+    except ValueError as e:
         raise HTTPException(500, {
-            "message": "The Statistic data is broken."
-        })
-
-    toilet_stat: Dict = list_toilet_stat.pop()
-    # TODO: Maybe, Improve this later?
-    if toilet_stat.get("time_average", "") == "":
-        raise HTTPException(500, {
-            "message": "The Statistic data is broken."
+            "message": str(e)
         })
     return {
-        "toilet_average":  toilet_stat.get("time_average")
+        "time_average": toilet_stat["time_average"]
     }
